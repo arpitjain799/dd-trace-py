@@ -300,6 +300,15 @@ jobs:
           name: "Run scripts/*.py tests"
           command: riot run -s scripts
 
+  bandit:
+    executor: python310
+    steps:
+      - checkout
+      - setup_riot
+      - run:
+          name: "Running security analysis checks with bandit"
+          command: riot run -s bandit
+
   ccheck:
     executor: cimg_base
     steps:
@@ -1125,6 +1134,7 @@ requires_pre_check: &requires_pre_check
   requires:
     - pre_check
     - ccheck
+    - bandit
 
 requires_base_venvs: &requires_base_venvs
   requires:
@@ -1225,6 +1235,7 @@ workflows:
       # Pre-checking before running all jobs
       - pre_check
       - ccheck
+      - bandit
 
       # Build necessary base venvs for integration tests
       - build_base_venvs

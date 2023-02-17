@@ -75,3 +75,6 @@ exclude-modules = '''
   | ddtrace.profiling.collector
 )
 '''
+
+[tool.bandit]
+targets = ["ddtrace/"]

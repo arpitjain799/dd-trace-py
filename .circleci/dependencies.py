@@ -19,6 +19,7 @@ LATEST_VERSIONS = {
     "asyncpg": "0.27.0",
     "attrs": "22.1.0",
     "austin-python": "1.4.2",
+    "bandit": "1.7.4",
     "black": "22.10.0",
     "blinker": "1.5",
     "boto": "2.49.0",
