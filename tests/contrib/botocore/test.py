@@ -288,7 +288,7 @@ class BotocoreTest(TracerTestCase):
         span = spans[0]
         assert len(spans) == 1
         assert span.get_tag("aws.region") == "us-east-1"
-        assert span.get_tag("region") == "us-west-1"
+        assert span.get_tag("region") == "us-east-1"
         assert span.get_tag("aws_service") == "sqs"
         assert span.get_tag("queuename") == "test"
         assert span.get_tag("aws.operation") == "CreateQueue"
@@ -705,7 +705,7 @@ class BotocoreTest(TracerTestCase):
         assert len(spans) == 1
         assert span.get_tag("aws.region") == "us-west-2"
         assert span.get_tag("region") == "us-west-2"
-        assert span.get_tag("aws_service") == "kinesis"
+        assert span.get_tag("aws_service") == "lambda"
         assert span.get_tag("aws.operation") == "ListFunctions"
         assert span.get_tag("component") == "botocore"
         assert span.get_tag("span.kind"), "client"
