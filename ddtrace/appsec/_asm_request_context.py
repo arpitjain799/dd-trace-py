@@ -9,7 +9,9 @@ if TYPE_CHECKING:
     from typing import Any
     from typing import Callable
     from typing import Generator
+    from typing import List
     from typing import Optional
+    from typing import Tuple
 
 from ddtrace.vendor import contextvars
 
@@ -22,7 +24,6 @@ contextvars. When using this, note that context vars are always thread-local so 
 thread will have a different context.
 """
 
-
 # FIXME: remove these and use the new context API once implemented and allowing
 # contexts without spans
 
@@ -33,6 +34,9 @@ _DD_EARLY_HEADERS_CASE_SENSITIVE_CONTEXTVAR = contextvars.ContextVar(
 )
 _DD_BLOCK_REQUEST_CALLABLE = contextvars.ContextVar("datadog_block_request_callable_contextvar", default=None)
 _DD_WAF_CALLBACK = contextvars.ContextVar("datadog_early_waf_callback", default=None)
+_DD_WAF_RESULTS = contextvars.ContextVar("datadog_early_waf_results", default=([[], [], []]))
+_DD_WAF_SENT = contextvars.ContextVar("datadog_waf_adress_sent", default=None)
+_DD_IAST_TAINT_DICT = contextvars.ContextVar("datadog_iast_taint_dict", default={})
 
 
 def reset():  # type: () -> None
@@ -40,6 +44,8 @@ def reset():  # type: () -> None
     _DD_EARLY_HEADERS_CONTEXTVAR.set(None)
     _DD_EARLY_HEADERS_CASE_SENSITIVE_CONTEXTVAR.set(False)
     _DD_BLOCK_REQUEST_CALLABLE.set(None)
+    _DD_WAF_SENT.set(set())
+    _DD_IAST_TAINT_DICT.set({})
 
 
 def set_ip(ip):  # type: (Optional[str]) -> None
@@ -48,6 +54,14 @@ def set_ip(ip):  # type: (Optional[str]) -> None
 
 def get_ip():  # type: () -> Optional[str]
     return _DD_EARLY_IP_CONTEXTVAR.get()
+
+
+def set_taint_dict(taint_dict):  # type: (dict) -> None
+    _DD_IAST_TAINT_DICT.set(taint_dict)
+
+
+def get_taint_dict():  # type: () -> dict
+    return _DD_IAST_TAINT_DICT.get()
 
 
 # Note: get/set headers use Any since we just carry the headers here without changing or using them
@@ -107,12 +121,33 @@ def call_waf_callback(custom_data=None):
         log.warning("WAF callback called but not set")
 
 
+def get_data_sent():  # type: () -> set[str]
+    return _DD_WAF_SENT.get()
+
+
 def asm_request_context_set(remote_ip=None, headers=None, headers_case_sensitive=False, block_request_callable=None):
     # type: (Optional[str], Any, bool, Optional[Callable]) -> None
     set_ip(remote_ip)
     set_headers(headers)
     set_headers_case_sensitive(headers_case_sensitive)
     set_block_request_callable(block_request_callable)
+    _DD_WAF_SENT.set(set())
+
+
+def set_waf_results(result_data, result_info, is_blocked):  # type: (Any, Any, bool) -> None
+    list_results_data, list_result_info, list_is_blocked = get_waf_results()
+    list_results_data.append(result_data)
+    list_result_info.append(result_info)
+    list_is_blocked.append(is_blocked)
+    _DD_WAF_RESULTS.set((list_results_data, list_result_info, list_is_blocked))
+
+
+def get_waf_results():  # type: () -> Tuple[List[Any], List[Any], List[bool]]
+    return _DD_WAF_RESULTS.get()
+
+
+def reset_waf_results():  # type: () -> None
+    _DD_WAF_RESULTS.set([[], [], []])
 
 
 @contextlib.contextmanager

@@ -58,6 +58,7 @@ contextvar
 contextvars
 coroutine
 coroutines
+Cython
 datadog
 datadoghq
 datastore
@@ -160,6 +161,7 @@ resolvers
 repo
 respawn
 rq
+rowcount
 runnable
 runtime
 runtimes
@@ -179,6 +181,7 @@ submodule
 submodules
 substring
 timestamp
+tracestate
 tweens
 uWSGI
 unbuffered
@@ -198,6 +201,7 @@ versioned
 vertica
 w3c
 whitelist
+whitespace
 workflow
 wsgi
 xfail
