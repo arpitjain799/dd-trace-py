@@ -398,6 +398,7 @@ def _set_response_metadata_tags(span, result):
     # type: (Span, Dict[str, Any]) -> None
     if not result.get("ResponseMetadata"):
         return
+
     response_meta = result["ResponseMetadata"]
 
     if "HTTPStatusCode" in response_meta:
