@@ -279,6 +279,7 @@ class BotocoreTest(TracerTestCase):
 
     def _test_sqs_client(self):
         sqs = self.session.create_client("sqs", region_name="us-east-1", endpoint_url="http://localhost:4566")
+        self.override_config("botocore", dict(tag_no_params=False, tag_all_params=True))
         Pin(service=self.TEST_SERVICE, tracer=self.tracer).onto(sqs)
 
         sqs.create_queue(QueueName="test")
