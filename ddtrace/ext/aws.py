@@ -99,7 +99,7 @@ def _add_api_param_span_tags(span, endpoint_name, params):
 
     elif endpoint_name == "lambda":
         function_name = params.get("FunctionName", "")
-        span.set_tag_str("FunctionName", function_name)
+        span.set_tag_str("functionname", function_name)
 
 
 REGION = "aws.region"
