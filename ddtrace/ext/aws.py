@@ -87,7 +87,7 @@ def _add_api_param_span_tags(span, endpoint_name, params):
             span.set_tag_str("topicname", topicname)
 
     elif endpoint_name == "sqs":
-        queue_name = params.get("QueueName", "") 
+        queue_name = params.get("QueueName", "")
         queue_url = params.get("QueueUrl")
         if queue_url:
             # example queue_url: https://sqs.sa-east-1.amazonaws.com/12345678/queuename
@@ -96,6 +96,10 @@ def _add_api_param_span_tags(span, endpoint_name, params):
             span.set_tag_str("aws_account", aws_account)
             span.set_tag_str("aws.sqs.queue_url", queue_url)
         span.set_tag_str("queuename", queue_name)
+
+    elif endpoint_name == "lambda":
+        function_name = params.get("FunctionName", "")
+        span.set_tag_str("FunctionName", function_name)
 
 
 REGION = "aws.region"

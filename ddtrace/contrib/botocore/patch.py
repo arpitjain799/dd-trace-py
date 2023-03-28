@@ -336,7 +336,7 @@ def patched_api_call(original_func, instance, args, kwargs):
             # across Python versions (see
             # https://stackoverflow.com/questions/1316887/what-is-the-most-efficient-string-concatenation-method-in-python)
             span.resource = ".".join((endpoint_name, operation.lower()))
-            span.set_tag("aws_service", endpoint_name)   
+            span.set_tag("aws_service", endpoint_name)
             if config.botocore["distributed_tracing"]:
                 try:
                     if endpoint_name == "lambda" and operation == "Invoke":
