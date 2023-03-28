@@ -50,6 +50,7 @@ def add_span_arg_tags(
 
 def _add_api_param_span_tags(span, endpoint_name, params):
     # type: (Span, str, Dict[str, Any]) -> None
+    # Note only some boto3 requests will supply these params i.e. that might explain why you see these tags being set to empty strings
     if endpoint_name == "cloudwatch":
         log_group_name = params.get("logGroupName")
         if log_group_name:
@@ -100,6 +101,14 @@ def _add_api_param_span_tags(span, endpoint_name, params):
     elif endpoint_name == "lambda":
         function_name = params.get("FunctionName", "")
         span.set_tag_str("functionname", function_name)
+
+    elif endpoint_name == "events":
+        rule_name = params.get("Name", "")
+        span.set_tag_str("rulename", rule_name)
+
+    elif endpoint_name == "states":
+        state_machine_arn = params.get("stateMachineArn", "")
+        span.set_tag_str("statemachinearn", state_machine_arn)
 
 
 REGION = "aws.region"
