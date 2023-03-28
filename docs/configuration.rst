@@ -30,7 +30,7 @@ The following environment variables for the tracer are supported:
 
    DD_TAGS:
      description: |
-         Set global tags to be attached to every span. Value must be either comma or space separated. e.g. ``key1:value1,key2,value2`` or ``key1:value key2:value2``.
+         Set global tags to be attached to every span. Value must be either comma or space separated. e.g. ``key1:value1,key2:value2`` or ``key1:value key2:value2``.
      version_added:
        v0.38.0: Comma separated support added
        v0.48.0: Space separated support added
@@ -475,7 +475,7 @@ The following environment variables for the tracer are supported:
 
    DD_UNLOAD_MODULES_FROM_SITECUSTOMIZE:
      type: String
-     default: "0"
+     default: "auto"
      description: |
         Controls whether module cloning logic is executed by ``ddtrace-run``. Module cloning involves saving copies of dependency modules for internal use by ``ddtrace``
         that will be unaffected by future imports of and changes to those modules by application code. Valid values for this variable are ``1``, ``0``, and ``auto``. ``1`` tells
