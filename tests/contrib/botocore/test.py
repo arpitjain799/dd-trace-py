@@ -1739,8 +1739,6 @@ class BotocoreTest(TracerTestCase):
         assert span.get_tag("region") == "us-east-1"
         assert span.get_tag("aws_service") == "kinesis"
 
-
-
         assert span.get_tag("params.MessageBody") is None
 
         assert span.get_tag("component") == "botocore"
@@ -1782,10 +1780,9 @@ class BotocoreTest(TracerTestCase):
         Pin(service=self.TEST_SERVICE, tracer=self.tracer).onto(client)
         client.put_record(StreamName=stream_name, Data=data, PartitionKey=partition_key)
 
-
         # assert commons for span
         span = self._kinesis_assert_spans()
-        
+
         assert span.get_tag("streamname") == stream_name
 
         # assert operation specifics for span
@@ -1814,12 +1811,11 @@ class BotocoreTest(TracerTestCase):
         Pin(service=self.TEST_SERVICE, tracer=self.tracer).onto(client)
         client.put_records(StreamName=stream_name, Records=data)
 
-
         # assert commons for span
         span = self._kinesis_assert_spans()
 
         # assert operation specifics for span
-        
+
         assert span.get_tag("streamname") == stream_name
         assert span.get_tag("aws.operation") == "PutRecords"
         assert span.resource == "kinesis.putrecords"
@@ -1868,7 +1864,6 @@ class BotocoreTest(TracerTestCase):
         data = json_string.encode()
 
         self._test_kinesis_put_record_trace_injection("json_string_bytes", data)
-
 
     @mock_kinesis
     def test_kinesis_put_record_base64_trace_injection(self):
