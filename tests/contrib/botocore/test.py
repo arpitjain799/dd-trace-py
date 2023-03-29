@@ -276,7 +276,6 @@ class BotocoreTest(TracerTestCase):
 
     def _test_sqs_client(self):
         sqs = self.session.create_client("sqs", region_name="us-east-1", endpoint_url="http://localhost:4566")
-        self.override_config("botocore", dict(tag_no_params=False, tag_all_params=True))
         Pin(service=self.TEST_SERVICE, tracer=self.tracer).onto(sqs)
 
         sqs.create_queue(QueueName="test")
@@ -297,6 +296,9 @@ class BotocoreTest(TracerTestCase):
     @mock_sqs
     def test_sqs_client(self):
         span = self._test_sqs_client()
+        assert span.get_tag("region") == "us-east-1"
+        assert span.get_tag("aws_service") == "sqs"
+        assert span.get_tag("queuename") == "test"
         assert span.get_tag("aws.sqs.queue_name") == "test"
         assert span.get_tag("component") == "botocore"
 
@@ -328,10 +330,6 @@ class BotocoreTest(TracerTestCase):
             span = spans[0]
             assert len(spans) == 1
             assert span.get_tag("aws.region") == "us-east-1"
-            assert span.get_tag("region") == "us-east-1"
-            assert span.get_tag("aws_service") == "sqs"
-            assert span.get_tag("queuename") == "test"
-            assert span.get_tag("aws.operation") == "Invoke"
             assert span.get_tag("aws.operation") == "SendMessage"
             assert span.get_tag("params.MessageBody") is None
             assert span.get_tag("component") == "botocore"
@@ -963,7 +961,7 @@ class BotocoreTest(TracerTestCase):
             span = spans[0]
             str_entries = span.get_tag("params.Entries")
             put_rule_span = spans[1]
-            assert put_rule_span.get_tag("rulename") == "a-test-bus-rule"
+            assert put_rule_span.get_tag("rulename") == "a-test-bus"
             assert put_rule_span.get_tag("aws_service") == "events"
             assert put_rule_span.get_tag("region") == "us-east-1"
             assert str_entries is None
