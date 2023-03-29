@@ -98,6 +98,7 @@ def _add_api_param_span_tags(span, endpoint_name, params):
             span.set_tag_str("aws_account", aws_account)
             span.set_tag_str("aws.sqs.queue_url", queue_url)
         span.set_tag_str("queuename", queue_name)
+        span.set_tag_str("aws.sqs.queue_name", queue_name)
 
     elif endpoint_name == "lambda":
         function_name = params.get("FunctionName", "")
