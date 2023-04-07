@@ -182,5 +182,8 @@ tracer.flush()
     assert events[0]["runtime_id"] == events[1]["runtime_id"]
     assert events[0]["request_type"] == "app-closing"
     assert events[1]["request_type"] == "app-started"
-    assert events[1]["payload"]["error"]["code"] == 2
-    assert events[1]["payload"]["error"]["message"] == "module 'sqlite3' has no attribute 'connect'"
+    assert events[1]["payload"]["error"]["code"] == 1
+    assert (
+        events[1]["payload"]["integration"]["sqlite3"]["error"]
+        == "module 'sqlite3' has no attribute 'connect'"
+    )
