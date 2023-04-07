@@ -6,7 +6,7 @@ from typing import DefaultDict
 from typing import Tuple
 from typing import cast
 
-from telemetry import telemetry_writer
+from ddtrace.internal.telemetry import telemetry_writer
 
 
 def get_logger(name):
