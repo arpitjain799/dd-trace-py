@@ -520,7 +520,6 @@ class AgentWriter(HTTPWriter):
         self,
         agent_url,  # type: str
         sampler=None,  # type: Optional[BaseSampler]
-        priority_sampler=None,  # type: Optional[BasePrioritySampler]
         processing_interval=get_writer_interval_seconds(),  # type: float
         # Match the payload size since there is no functionality
         # to flush dynamically.
@@ -533,6 +532,7 @@ class AgentWriter(HTTPWriter):
         api_version=None,  # type: Optional[str]
         reuse_connections=None,  # type: Optional[bool]
         headers=None,  # type: Optional[Dict[str, str]]
+        response_callback=lambda _: None,
     ):
         # type: (...) -> None
         if buffer_size is not None and buffer_size <= 0:
@@ -547,11 +547,7 @@ class AgentWriter(HTTPWriter):
         is_windows = sys.platform.startswith("win") or sys.platform.startswith("cygwin")
         default_api_version = "v0.4" if is_windows else "v0.5"
 
-        self._api_version = (
-            api_version
-            or os.getenv("DD_TRACE_API_VERSION")
-            or (default_api_version if priority_sampler is not None else "v0.3")
-        )
+        self._api_version = api_version or os.getenv("DD_TRACE_API_VERSION") or default_api_version
         if is_windows and self._api_version == "v0.5":
             raise RuntimeError(
                 "There is a known compatibility issue with v0.5 API and Windows, "
@@ -594,12 +590,13 @@ class AgentWriter(HTTPWriter):
         additional_header_str = os.environ.get("_DD_TRACE_WRITER_ADDITIONAL_HEADERS")
         if additional_header_str is not None:
             _headers.update(parse_tags_str(additional_header_str))
+
+        self._response_cb = response_callback
         super(AgentWriter, self).__init__(
             intake_url=agent_url,
             endpoint=endpoint,
             encoder=encoder,
             sampler=sampler,
-            priority_sampler=priority_sampler,
             processing_interval=processing_interval,
             buffer_size=buffer_size,
             max_payload_size=max_payload_size,
@@ -615,7 +612,6 @@ class AgentWriter(HTTPWriter):
         return self.__class__(
             agent_url=self.agent_url,
             sampler=self._sampler,
-            priority_sampler=self._priority_sampler,
             processing_interval=self._interval,
             buffer_size=self._buffer_size,
             max_payload_size=self._max_payload_size,
@@ -672,20 +668,8 @@ class AgentWriter(HTTPWriter):
             else:
                 if payload is not None:
                     self._send_payload(payload, count)
-        elif response.status < 400 and (self._priority_sampler or isinstance(self._sampler, BasePrioritySampler)):
-            result_traces_json = response.get_json()
-            if result_traces_json and "rate_by_service" in result_traces_json:
-                try:
-                    if self._priority_sampler:
-                        self._priority_sampler.update_rate_by_service_sample_rates(
-                            result_traces_json["rate_by_service"],
-                        )
-                    if isinstance(self._sampler, BasePrioritySampler):
-                        self._sampler.update_rate_by_service_sample_rates(
-                            result_traces_json["rate_by_service"],
-                        )
-                except ValueError:
-                    log.error("sample_rate is negative, cannot update the rate samplers")
+        elif response.status < 400:
+            self._response_cb(response.get_json())
 
     def start(self):
         super(AgentWriter, self).start()

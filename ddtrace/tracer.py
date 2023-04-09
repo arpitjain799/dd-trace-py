@@ -45,7 +45,8 @@ from .internal.runtime import get_runtime_id
 from .internal.serverless import has_aws_lambda_agent_extension
 from .internal.serverless import in_aws_lambda
 from .internal.service import ServiceStatusError
-from .internal.utils.formats import asbool
+from .internal.telemetry import telemetry_writer
+from .internal.utils.formats import asbool, parse_tags_str
 from .internal.writer import AgentWriter
 from .internal.writer import LogWriter
 from .internal.writer import TraceWriter
@@ -184,6 +185,29 @@ def _default_span_processors_factory(
     return span_processors, appsec_processor
 
 
+class _TraceConfigurationV1(object):
+    def __init__(
+        self,
+        service,  # type: str
+        env,  # type: str
+        version,  # type: str
+        trace_enabled,  # type: bool
+        debug_enabled,  # type: bool
+        http_header_tags,  # type: str
+        service_mapping,  # type: str
+        trace_sample_rate,  # type: float
+    ):
+        # type: (...) -> None
+        self.service = service
+        self.env = env
+        self.version = version
+        self.trace_enabled = trace_enabled
+        self.debug_enabled = debug_enabled
+        self.http_header_tags = parse_tags_str(http_header_tags)
+        self.service_mapping = parse_tags_str(service_mapping)
+        self.trace_sampler = DatadogSampler(default_sample_rate=trace_sample_rate)
+
+
 class Tracer(object):
     """
     Tracer is used to create, sample and submit spans that measure the
@@ -223,7 +247,6 @@ class Tracer(object):
         # traces
         self._pid = getpid()
 
-        self.enabled = asbool(os.getenv("DD_TRACE_ENABLED", default=True))
         self.context_provider = DefaultContextProvider()
         self._sampler = DatadogSampler()  # type: BaseSampler
         self._priority_sampler = RateByServiceSampler()  # type: Optional[BasePrioritySampler]
@@ -238,10 +261,10 @@ class Tracer(object):
             writer = AgentWriter(
                 agent_url=self._agent_url,
                 sampler=self._sampler,
-                priority_sampler=self._priority_sampler,
                 dogstatsd=get_dogstatsd_client(self._dogstatsd_url),
                 sync_mode=self._use_sync_mode(),
                 headers={"Datadog-Client-Computed-Stats": "yes"} if self._compute_stats else {},
+                response_callback=self._update_config,
             )
         self._single_span_sampling_rules = get_span_sampling_rules()  # type: List[SpanSamplingRule]
         self._writer = writer  # type: TraceWriter
@@ -272,6 +295,16 @@ class Tracer(object):
         self._shutdown_lock = RLock()
 
         self._new_process = False
+        self._config = _TraceConfigurationV1(
+            service=config.service,
+            env=config.env,
+            version=config.version,
+            trace_enabled=asbool(os.getenv("DD_TRACE_ENABLED", default="1")),
+            debug_enabled=asbool(os.getenv("DD_TRACE_DEBUG", default="1")),
+            http_header_tags=os.getenv("DD_TRACE_HEADER_TAGS", ""),
+            service_mapping=os.getenv("DD_SERVICE_MAPPING", ""),
+            trace_sample_rate=float(os.getenv("DD_TRACE_SAMPLE_RATE", default="1.0"))
+        )
 
     def _atexit(self):
         # type: () -> None
@@ -282,6 +315,55 @@ class Tracer(object):
             key,
         )
         self.shutdown(timeout=self.SHUTDOWN_TIMEOUT)
+
+    def _update_config(self, resp):
+        if "rate_by_service" in resp:
+            try:
+                if self._priority_sampler:
+                    self._priority_sampler.update_rate_by_service_sample_rates(
+                        resp["rate_by_service"],
+                    )
+                if isinstance(self._sampler, BasePrioritySampler):
+                    self._sampler.update_rate_by_service_sample_rates(
+                        resp["rate_by_service"],
+                    )
+            except ValueError:
+                log.error("sample_rate is negative, cannot update the rate samplers")
+
+        if "configuration" in resp:
+            if resp["configuration"]["version"] <= config._rc_version:
+                return
+            config._rc_version = resp["configuration"]["version"]
+
+            apm_cfg = resp["configuration"]["apm"]
+            self._config = _TraceConfigurationV1(
+                service=config.service,
+                env=config.env,
+                version=config.version,
+                trace_enabled=apm_cfg["trace_enabled"],
+                debug_enabled=apm_cfg["trace_debug_enabled"],
+                http_header_tags=apm_cfg["http_header_tags"],
+                service_mapping=apm_cfg["service_mapping"],
+                trace_sample_rate=apm_cfg["trace_sample_rate"],
+            )
+            telemetry_writer.add_event(
+                {
+                    "configuration": [
+                        {"name": "service", "value": ""},
+                        {"name": ""},
+                    ],
+                    "remote_config": {
+                        "user_enabled": True,
+                        "rc_id": ...,
+                    },
+                },
+                "app-client-configuration-change",
+            )
+
+    def update_configuration(
+        self,
+    ):
+        return
 
     def on_start_span(self, func):
         # type: (Callable) -> Callable
@@ -507,7 +589,7 @@ class Tracer(object):
         if wrap_executor is not None:
             self._wrap_executor = wrap_executor
 
-        if debug_mode or asbool(environ.get("DD_TRACE_STARTUP_LOGS", False)):
+        if self._config.debug_mode or asbool(environ.get("DD_TRACE_STARTUP_LOGS", False)):
             try:
                 info = debug.collect(self)
             except Exception as e:
@@ -561,6 +643,10 @@ class Tracer(object):
         # type: (...) -> Span
         log.warning("Spans started after the tracer has been shut down will not be sent to the Datadog Agent.")
         return self._start_span(name, child_of, service, resource, span_type, activate)
+
+    @property
+    def enabled(self):
+        return self._config.trace_enabled
 
     def _start_span(
         self,
@@ -641,24 +727,17 @@ class Tracer(object):
         if parent:
             trace_id = parent.trace_id  # type: Optional[int]
             parent_id = parent.span_id  # type: Optional[int]
+            trace_cfg = parent._get_ctx_item("config")
         else:
             trace_id = context.trace_id
             parent_id = context.span_id
+            trace_cfg = self._config
 
-        # The following precedence is used for a new span's service:
-        # 1. Explicitly provided service name
-        #     a. User provided or integration provided service name
-        # 2. Parent's service name (if defined)
-        # 3. Globally configured service name
-        #     a. `config.service`/`DD_SERVICE`/`DD_TAGS`
         if service is None:
-            if parent:
-                service = parent.service
-            else:
-                service = config.service
+            service = trace_cfg.service
 
         # Update the service name based on any mapping
-        service = config.service_mapping.get(service, service)
+        service = self._config.service_mapping.get(service, service)
 
         if trace_id:
             # child_of a non-empty context, so either a local child span or from a remote context
@@ -695,6 +774,8 @@ class Tracer(object):
             if config.report_hostname:
                 span.set_tag_str(HOSTNAME_KEY, hostname.get_hostname())
 
+        span._set_ctx_item("config", trace_cfg)
+
         if not span._parent:
             span.set_tag_str("runtime-id", get_runtime_id())
             span._metrics[PID] = self._pid
@@ -726,7 +807,7 @@ class Tracer(object):
             self._services.add(service)
 
         if not trace_id:
-            span.sampled = self._sampler.sample(span)
+            span.sampled = self._config.trace_sampler.sample(span)
             # Old behavior
             # DEV: The new sampler sets metrics and priority sampling on the span for us
             if not isinstance(self._sampler, DatadogSampler):
@@ -753,7 +834,7 @@ class Tracer(object):
                 span.sampled = True
 
         # Only call span processors if the tracer is enabled
-        if self.enabled:
+        if trace_cfg.trace_enabled:
             for p in self._span_processors:
                 p.on_span_start(span)
         self._hooks.emit(self.__class__.start_span, span)
@@ -764,6 +845,7 @@ class Tracer(object):
 
     def _on_span_finish(self, span):
         # type: (Span) -> None
+        trace_cfg = span._get_ctx_item("config")
         active = self.current_span()
         # Debug check: if the finishing span has a parent and its parent
         # is not the next active span then this is an error in synchronous tracing.
@@ -771,7 +853,7 @@ class Tracer(object):
             log.debug("span %r closing after its parent %r, this is an error when not using async", span, span._parent)
 
         # Only call span processors if the tracer is enabled
-        if self.enabled:
+        if trace_cfg.trace_enabled:
             for p in self._span_processors:
                 p.on_span_finish(span)
 
