@@ -153,7 +153,7 @@ def _on_import_factory(module, prefix="ddtrace.contrib", raise_errors=True):
         except Exception:
             if raise_errors:
                 raise
-            log.error("failed to import ddtrace module %r when patching on import", path, exc_info=True)
+            log.error("failed to import ddtrace module %r when patching on import" % path, exc_info=True)
         else:
             imported_module.patch()
         # If there was an error, it was already added to the telemetry writer with log.error()

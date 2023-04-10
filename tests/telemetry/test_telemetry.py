@@ -159,6 +159,30 @@ os.fork()
 
 def test_app_started_error(test_agent_session, run_python_code_in_subprocess):
     code = """
+from ddtrace import patch, tracer
+patch(raise_errors=False, sqlite3=True)
+tracer.trace("test").finish()
+tracer.flush()
+"""
+
+    stdout, stderr, status, _ = run_python_code_in_subprocess(code)
+
+    assert status == 0, stderr
+    assert b"failed to import" in stderr
+
+    events = test_agent_session.get_events()
+    assert len(events) == 2
+
+    # Same runtime id is used
+    assert events[0]["runtime_id"] == events[1]["runtime_id"]
+    assert events[0]["request_type"] == "app-closing"
+    assert events[1]["request_type"] == "app-started"
+    assert events[1]["payload"]["error"]["code"] == 1
+    assert events[1]["payload"]["integration"][0]["error"] == "module 'sqlite3' has no attribute 'connect'"
+
+
+def test_integration_error(test_agent_session, run_python_code_in_subprocess):
+    code = """
 import sqlite3
 # patch() of the sqlite integration assumes this attribute is there
 # removing it should cause patching to fail.
@@ -182,5 +206,6 @@ tracer.flush()
     assert events[0]["runtime_id"] == events[1]["runtime_id"]
     assert events[0]["request_type"] == "app-closing"
     assert events[1]["request_type"] == "app-started"
-    assert events[1]["payload"]["error"]["code"] == 1
-    assert events[1]["payload"]["integration"][0]["error"] == "module 'sqlite3' has no attribute 'connect'"
+    assert events[1]["payload"]["integrations"][0]["error"] == (
+        "failed to import ddtrace module 'ddtrace.contrib.sqlite3' when patching on import"
+    )
