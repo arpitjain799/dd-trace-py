@@ -311,6 +311,10 @@ class Tracer(object):
     def debug_logging(self):
         return log.isEnabledFor(logging.DEBUG)
 
+    def global_excepthook(self, tp, value, traceback):
+        """The global tracer except hook."""
+        self._dogstatsd_client.increment("datadog.tracer.uncaught_exceptions", 1, tags=["class:%s" % tp.__name__])
+
     def current_trace_context(self, *args, **kwargs):
         # type: (...) -> Optional[Context]
         """Return the context for the current trace.

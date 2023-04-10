@@ -164,8 +164,10 @@ patch(raise_errors=False, sqlite3=True)
 tracer.trace("test").finish()
 tracer.flush()
 """
+    env = os.environ.copy()
+    env["DD_SPAN_SAMPLING_RULES"] = "invalid_rules"
 
-    stdout, stderr, status, _ = run_python_code_in_subprocess(code)
+    stdout, stderr, status, _ = run_python_code_in_subprocess(code, env)
 
     assert status == 0, stderr
     assert b"failed to import" in stderr

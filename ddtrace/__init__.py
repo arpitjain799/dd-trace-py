@@ -40,3 +40,7 @@ __all__ = [
     "config",
     "DDTraceDeprecationWarning",
 ]
+
+
+def install_excepthook():
+    """Install a hook that intercepts unhandled exception and send metrics about them."""

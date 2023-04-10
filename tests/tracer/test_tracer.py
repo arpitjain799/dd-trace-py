@@ -48,6 +48,7 @@ from tests.utils import override_global_config
 
 from ..appsec.test_processor import tracer_appsec
 from ..utils import override_env
+from ..utils import override_global_tracer
 
 
 class TracerTestCases(TracerTestCase):
@@ -1934,3 +1935,29 @@ def test_ctx_api():
         _context.get_item("appsec.key")
     with pytest.raises(ValueError):
         _context.get_items(["appsec.key"])
+
+
+def test_excepthook():
+    ddtrace.install_excepthook()
+
+    class Foobar(Exception):
+        pass
+
+    called = {}
+
+    def original(tp, value, traceback):
+        called["yes"] = True
+
+    sys.excepthook = original
+    ddtrace.install_excepthook()
+
+    e = Foobar()
+
+    tracer = ddtrace.Tracer()
+    tracer._writer.dogstatsd = mock.Mock()
+    with override_global_tracer(tracer):
+        sys.excepthook(e.__class__, e, None)
+    tracer._writer.dogstatsd.increment.assert_has_calls(
+        (mock.call("datadog.tracer.uncaught_exceptions", 1, tags=["class:Foobar"]),)
+    )
+    assert called

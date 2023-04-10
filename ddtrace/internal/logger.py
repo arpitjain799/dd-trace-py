@@ -167,5 +167,5 @@ class DDLogger(logging.Logger):
         from ddtrace.internal.telemetry import telemetry_writer
 
         # currently we only have one error code
-        telemetry_writer.add_error(1, msg)
+        telemetry_writer.add_error(1, msg % args)
         return super(DDLogger, self).error(msg, *args, **kwargs)
