@@ -219,7 +219,7 @@ class Tracer(object):
         :param dogstatsd_url: The DogStatsD URL.
         """
 
-        is_gcp_function = os.getenv("K_SERVICE") != None
+        is_gcp_function = os.getenv("K_SERVICE") is not None
 
         if is_gcp_function:
             _start_serverless_mini_agent()
