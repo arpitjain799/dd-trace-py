@@ -313,7 +313,7 @@ class Tracer(object):
 
     def global_excepthook(self, tp, value, traceback):
         """The global tracer except hook."""
-        self._dogstatsd_client.increment("datadog.tracer.uncaught_exceptions", 1, tags=["class:%s" % tp.__name__])
+        self._writer.dogstatsd.increment("datadog.tracer.uncaught_exceptions", 1, tags=["class:%s" % tp.__name__])
 
     def current_trace_context(self, *args, **kwargs):
         # type: (...) -> Optional[Context]
