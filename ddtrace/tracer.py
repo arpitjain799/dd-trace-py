@@ -185,10 +185,19 @@ def _default_span_processors_factory(
     return span_processors, appsec_processor
 
 
-def _start_serverless_mini_agent():
+def _maybe_start_serverless_mini_agent():
+    is_gcp_function = os.getenv("K_SERVICE") is not None
     rust_binary_path = os.getenv("DD_MINI_AGENT_PATH")
-    if rust_binary_path:
+    if not is_gcp_function:
+        return
+    if not rust_binary_path:
+        log.log(logging.ERROR, "Serverless Mini Agent did not start. Please provide a DD_MINI_AGENT_PATH environment variable.")
+        return
+
+    try:
         Popen(rust_binary_path)
+    except Exception as e:
+        log.log(logging.ERROR, "Error spawning Serverless Mini Agent process: %s", repr(e))
 
 
 class Tracer(object):
@@ -219,10 +228,7 @@ class Tracer(object):
         :param dogstatsd_url: The DogStatsD URL.
         """
 
-        is_gcp_function = os.getenv("K_SERVICE") is not None
-
-        if is_gcp_function:
-            _start_serverless_mini_agent()
+        _maybe_start_serverless_mini_agent()
 
         self._filters = []  # type: List[TraceFilter]
 
