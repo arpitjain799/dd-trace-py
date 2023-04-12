@@ -1,4 +1,3 @@
-from ctypes import cdll
 import importlib
 import os
 import threading
@@ -245,10 +244,6 @@ def patch(raise_errors=True, patch_modules_prefix=DEFAULT_MODULES_PREFIX, **patc
         ",".join(patched_modules),
     )
 
-    mini_agent_lib_path = os.getenv("DD_MINI_AGENT_LIB_PATH")
-    if mini_agent_lib_path:
-        rust_lib = cdll.LoadLibrary(mini_agent_lib_path)
-        rust_lib.start_mini_agent()
 
 
 def _get_patched_modules():
