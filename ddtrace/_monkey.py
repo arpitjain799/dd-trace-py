@@ -245,7 +245,6 @@ def patch(raise_errors=True, patch_modules_prefix=DEFAULT_MODULES_PREFIX, **patc
     )
 
 
-
 def _get_patched_modules():
     # type: () -> List[str]
     """Get the list of patched modules"""
