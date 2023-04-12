@@ -4,6 +4,7 @@ import logging
 import os
 from os import environ
 from os import getpid
+from subprocess import Popen
 import sys
 from threading import RLock
 from typing import TYPE_CHECKING
@@ -183,6 +184,11 @@ def _default_span_processors_factory(
     )
     return span_processors, appsec_processor
 
+def start_mini_agent():
+    # cwd = os.getcwd()
+    rust_binary_path = os.getenv("DD_MINI_AGENT_PATH")
+    if rust_binary_path:
+        Popen(rust_binary_path)
 
 class Tracer(object):
     """
@@ -211,6 +217,9 @@ class Tracer(object):
         :param url: The Datadog agent URL.
         :param dogstatsd_url: The DogStatsD URL.
         """
+        
+        start_mini_agent()
+        
         self._filters = []  # type: List[TraceFilter]
 
         # globally set tags
