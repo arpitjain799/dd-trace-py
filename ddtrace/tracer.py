@@ -191,7 +191,10 @@ def _maybe_start_serverless_mini_agent():
     if not is_gcp_function:
         return
     if not rust_binary_path:
-        log.log(logging.ERROR, "Serverless Mini Agent did not start. Please provide a DD_MINI_AGENT_PATH environment variable.")
+        log.log(
+            logging.ERROR,
+            "Serverless Mini Agent did not start. Please provide a DD_MINI_AGENT_PATH environment variable.",
+        )
         return
 
     try:
