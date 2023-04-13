@@ -45,6 +45,7 @@ from .internal.processor.trace import TraceTagsProcessor
 from .internal.runtime import get_runtime_id
 from .internal.serverless import has_aws_lambda_agent_extension
 from .internal.serverless import in_aws_lambda
+from .internal.serverless import in_gcp_function
 from .internal.service import ServiceStatusError
 from .internal.utils.formats import asbool
 from .internal.writer import AgentWriter
@@ -1058,6 +1059,8 @@ class Tracer(object):
         elif in_aws_lambda() and has_aws_lambda_agent_extension():
             # If the Agent Lambda extension is available then an AgentWriter is used.
             return False
+        elif in_gcp_function():
+            return False
         else:
             return in_aws_lambda()
 
@@ -1073,7 +1076,7 @@ class Tracer(object):
           When it's available traces must be sent synchronously to ensure all
           are received before the Lambda terminates.
         """
-        return in_aws_lambda() and has_aws_lambda_agent_extension()
+        return (in_aws_lambda() and has_aws_lambda_agent_extension()) or in_gcp_function()
 
     @staticmethod
     def _is_span_internal(span):

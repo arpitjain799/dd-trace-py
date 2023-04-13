@@ -17,3 +17,14 @@ def has_aws_lambda_agent_extension():
     extension available.
     """
     return path.exists("/opt/extensions/datadog-agent")
+
+
+def in_gcp_function():
+    # type: () -> bool
+    """Returns whether the environment is a GCP Function.
+    This is accomplished by checking if the FUNCTION_NAME or K_SERVICE
+    environment variables are defined.
+    """
+    has_function_name = bool(environ.get("FUNCTION_NAME", False))
+    has_k_service = bool(environ.get("K_SERVICE", False))
+    return has_function_name or has_k_service
