@@ -1947,8 +1947,6 @@ def test_installed_excepthook():
 
 
 def test_excepthook():
-    ddtrace.install_excepthook()
-
     class Foobar(Exception):
         pass
 

@@ -160,15 +160,15 @@ os.fork()
 def test_app_started_error(test_agent_session, run_python_code_in_subprocess):
     code = """
 from ddtrace import patch, tracer
-patch(raise_errors=False, sqlite3=True)
-tracer.trace("test").finish()
-tracer.flush()
+ddtrace.install_excepthook()
 """
     env = os.environ.copy()
     env["DD_SPAN_SAMPLING_RULES"] = "invalid_rules"
 
-    stdout, stderr, status, _ = run_python_code_in_subprocess(code, env)
+    stdout, stderr, status, _ = run_python_code_in_subprocess(code, env=env)
+    import pdb
 
+    pdb.set_trace()
     assert status == 0, stderr
     assert b"failed to import" in stderr
 
