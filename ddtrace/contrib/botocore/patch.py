@@ -387,7 +387,6 @@ def patched_api_call(original_func, instance, args, kwargs):
         if operation is not None:
             span.set_tag_str("aws.operation", operation)
         if region_name is not None:
-            span.set_tag_str("aws.region", region_name)
             span.set_tag_str("region", region_name)
 
         # set analytics sample rate

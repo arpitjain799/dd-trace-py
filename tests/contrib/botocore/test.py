@@ -91,7 +91,7 @@ class BotocoreTest(TracerTestCase):
         assert len(spans) == 1
         assert_is_measured(span)
         assert span.get_tag("aws.agent") == "botocore"
-        assert span.get_tag("aws.region") == "us-west-2"
+        assert span.get_tag("region") == "us-west-2"
         assert span.get_tag("aws.operation") == "DescribeInstances"
         assert span.get_tag("aws.requestid") == "fdcdcab1-ae5c-489e-9c33-4637c5dda355"
         assert span.get_tag("component") == "botocore"
@@ -284,7 +284,7 @@ class BotocoreTest(TracerTestCase):
         assert spans
         span = spans[0]
         assert len(spans) == 1
-        assert span.get_tag("aws.region") == "us-east-1"
+        assert span.get_tag("region") == "us-east-1"
         assert span.get_tag("aws.operation") == "CreateQueue"
         assert span.get_tag("component") == "botocore"
         assert_is_measured(span)
@@ -299,14 +299,13 @@ class BotocoreTest(TracerTestCase):
         assert span.get_tag("region") == "us-east-1"
         assert span.get_tag("aws_service") == "sqs"
         assert span.get_tag("queuename") == "test"
-        assert span.get_tag("aws.sqs.queue_name") == "test"
         assert span.get_tag("component") == "botocore"
 
     @mock_sqs
     def test_sqs_client_no_params(self):
         with self.override_config("botocore", dict(tag_no_params=True)):
             span = self._test_sqs_client()
-            assert span.get_tag("aws.sqs.queue_name") is None
+            assert span.get_tag("queuename") is None
             assert span.get_tag("params.MessageBody") is None
 
     @mock_sqs
@@ -329,7 +328,7 @@ class BotocoreTest(TracerTestCase):
             assert spans
             span = spans[0]
             assert len(spans) == 1
-            assert span.get_tag("aws.region") == "us-east-1"
+            assert span.get_tag("region") == "us-east-1"
             assert span.get_tag("aws.operation") == "SendMessage"
             assert span.get_tag("params.MessageBody") is None
             assert span.get_tag("component") == "botocore"
@@ -363,7 +362,7 @@ class BotocoreTest(TracerTestCase):
             assert spans
             span = spans[0]
             assert len(spans) == 1
-            assert span.get_tag("aws.region") == "us-east-1"
+            assert span.get_tag("region") == "us-east-1"
             assert span.get_tag("aws.operation") == "SendMessage"
             assert span.get_tag("params.MessageBody") is None
             assert span.get_tag("component") == "botocore"
@@ -403,7 +402,7 @@ class BotocoreTest(TracerTestCase):
             assert spans
             span = spans[0]
             assert len(spans) == 1
-            assert span.get_tag("aws.region") == "us-east-1"
+            assert span.get_tag("region") == "us-east-1"
             assert span.get_tag("aws.operation") == "SendMessage"
             assert span.get_tag("params.MessageBody") is None
             assert span.get_tag("component") == "botocore"
@@ -448,7 +447,7 @@ class BotocoreTest(TracerTestCase):
             assert spans
             span = spans[0]
             assert len(spans) == 1
-            assert span.get_tag("aws.region") == "us-east-1"
+            assert span.get_tag("region") == "us-east-1"
             assert span.get_tag("aws.operation") == "SendMessage"
             assert span.get_tag("params.MessageBody") is None
             assert span.get_tag("component") == "botocore"
@@ -483,7 +482,7 @@ class BotocoreTest(TracerTestCase):
             assert spans
             span = spans[0]
             assert len(spans) == 1
-            assert span.get_tag("aws.region") == "us-east-1"
+            assert span.get_tag("region") == "us-east-1"
             assert span.get_tag("aws.operation") == "SendMessageBatch"
             assert span.get_tag("params.MessageBody") is None
             assert span.get_tag("component") == "botocore"
@@ -530,7 +529,7 @@ class BotocoreTest(TracerTestCase):
             assert spans
             span = spans[0]
             assert len(spans) == 1
-            assert span.get_tag("aws.region") == "us-east-1"
+            assert span.get_tag("region") == "us-east-1"
             assert span.get_tag("aws.operation") == "SendMessageBatch"
             assert span.get_tag("params.MessageBody") is None
             assert span.get_tag("component") == "botocore"
@@ -576,7 +575,7 @@ class BotocoreTest(TracerTestCase):
         assert spans
         span = spans[0]
         assert len(spans) == 1
-        assert span.get_tag("aws.region") == "us-east-1"
+        assert span.get_tag("region") == "us-east-1"
         assert span.get_tag("aws.operation") == "SendMessageBatch"
         assert span.get_tag("params.MessageBody") is None
         assert span.get_tag("component") == "botocore"
@@ -608,7 +607,7 @@ class BotocoreTest(TracerTestCase):
         assert spans
         span = spans[0]
         assert len(spans) == 1
-        assert span.get_tag("aws.region") == "us-east-1"
+        assert span.get_tag("region") == "us-east-1"
         assert span.get_tag("aws.operation") == "PutRecords"
         assert span.get_tag("component") == "botocore"
         assert span.get_tag("span.kind"), "client"
@@ -683,7 +682,7 @@ class BotocoreTest(TracerTestCase):
         assert spans
         span = spans[0]
         assert len(spans) == 1
-        assert span.get_tag("aws.region") == "us-west-2"
+        assert span.get_tag("region") == "us-west-2"
         assert span.get_tag("aws.operation") == "ListFunctions"
         assert span.get_tag("component") == "botocore"
         assert span.get_tag("span.kind"), "client"
@@ -723,7 +722,7 @@ class BotocoreTest(TracerTestCase):
             span = spans[0]
 
             assert len(spans) == 1
-            assert span.get_tag("aws.region") == "us-west-2"
+            assert span.get_tag("region") == "us-west-2"
             assert span.get_tag("region") == "us-west-2"
             assert span.get_tag("aws_service") == "lambda"
             assert span.get_tag("functionname") == "ironmaiden"
@@ -773,7 +772,7 @@ class BotocoreTest(TracerTestCase):
             span = spans[0]
 
             assert len(spans) == 1
-            assert span.get_tag("aws.region") == "us-west-2"
+            assert span.get_tag("region") == "us-west-2"
             assert span.get_tag("aws.operation") == "Invoke"
             assert span.get_tag("component") == "botocore"
             assert span.get_tag("span.kind"), "client"
@@ -820,7 +819,7 @@ class BotocoreTest(TracerTestCase):
             span = spans[0]
 
             assert len(spans) == 1
-            assert span.get_tag("aws.region") == "us-west-2"
+            assert span.get_tag("region") == "us-west-2"
             assert span.get_tag("aws.operation") == "Invoke"
             assert span.get_tag("component") == "botocore"
             assert span.get_tag("span.kind"), "client"
@@ -863,7 +862,7 @@ class BotocoreTest(TracerTestCase):
             span = spans[0]
 
             assert len(spans) == 1
-            assert span.get_tag("aws.region") == "us-west-2"
+            assert span.get_tag("region") == "us-west-2"
             assert span.get_tag("aws.operation") == "Invoke"
             assert span.get_tag("component") == "botocore"
             assert span.get_tag("span.kind"), "client"
@@ -909,7 +908,7 @@ class BotocoreTest(TracerTestCase):
         assert spans
         span = spans[0]
         assert len(spans) == 1
-        assert span.get_tag("aws.region") == "us-west-2"
+        assert span.get_tag("region") == "us-west-2"
         assert span.get_tag("aws.operation") == "Invoke"
         assert span.get_tag("component") == "botocore"
         assert span.get_tag("span.kind"), "client"
@@ -1065,7 +1064,7 @@ class BotocoreTest(TracerTestCase):
             assert spans
             span = spans[0]
             assert len(spans) == 1
-            assert span.get_tag("aws.region") == "us-east-1"
+            assert span.get_tag("region") == "us-east-1"
             assert span.get_tag("aws.operation") == "ListKeys"
             assert span.get_tag("component") == "botocore"
             assert span.get_tag("span.kind"), "client"
@@ -1101,7 +1100,7 @@ class BotocoreTest(TracerTestCase):
         assert ot_span.service == "ec2_svc"
 
         assert dd_span.get_tag("aws.agent") == "botocore"
-        assert dd_span.get_tag("aws.region") == "us-west-2"
+        assert dd_span.get_tag("region") == "us-west-2"
         assert dd_span.get_tag("aws.operation") == "DescribeInstances"
         assert dd_span.get_tag("component") == "botocore"
         assert dd_span.get_tag("span.kind"), "client"
@@ -1278,7 +1277,7 @@ class BotocoreTest(TracerTestCase):
             assert spans
             span = spans[0]
             assert len(spans) == 2
-            assert span.get_tag("aws.region") == "us-east-1"
+            assert span.get_tag("region") == "us-east-1"
             assert span.get_tag("aws.operation") == "Publish"
             assert span.get_tag("params.MessageBody") is None
             assert span.get_tag("component") == "botocore"
@@ -1351,7 +1350,7 @@ class BotocoreTest(TracerTestCase):
             assert spans
             span = spans[0]
             assert len(spans) == 2
-            assert span.get_tag("aws.region") == "us-east-1"
+            assert span.get_tag("region") == "us-east-1"
             assert span.get_tag("aws.operation") == "Publish"
             assert span.get_tag("params.MessageBody") is None
             assert span.get_tag("component") == "botocore"
@@ -1427,7 +1426,7 @@ class BotocoreTest(TracerTestCase):
             assert spans
             span = spans[0]
             assert len(spans) == 2
-            assert span.get_tag("aws.region") == "us-east-1"
+            assert span.get_tag("region") == "us-east-1"
             assert span.get_tag("aws.operation") == "Publish"
             assert span.get_tag("params.MessageBody") is None
             assert span.get_tag("component") == "botocore"
@@ -1495,7 +1494,7 @@ class BotocoreTest(TracerTestCase):
         assert spans
         span = spans[0]
         assert len(spans) == 2
-        assert span.get_tag("aws.region") == region
+        assert span.get_tag("region") == region
         assert span.get_tag("aws.operation") == "PublishBatch"
         assert span.get_tag("params.MessageBody") is None
         assert_is_measured(span)
@@ -1568,7 +1567,7 @@ class BotocoreTest(TracerTestCase):
         assert spans
         span = spans[0]
         assert len(spans) == 2
-        assert span.get_tag("aws.region") == region
+        assert span.get_tag("region") == region
         assert span.get_tag("aws.operation") == "PublishBatch"
         assert span.get_tag("params.MessageBody") is None
         assert_is_measured(span)
@@ -1642,7 +1641,7 @@ class BotocoreTest(TracerTestCase):
         assert spans
         span = spans[0]
         assert len(spans) == 2
-        assert span.get_tag("aws.region") == region
+        assert span.get_tag("region") == region
         assert span.get_tag("aws.operation") == "PublishBatch"
         assert span.get_tag("params.MessageBody") is None
         assert_is_measured(span)
@@ -1687,7 +1686,7 @@ class BotocoreTest(TracerTestCase):
         assert len(spans) == 1
 
         span = spans[0]
-        assert span.get_tag("aws.region") == "us-east-1"
+        assert span.get_tag("region") == "us-east-1"
         assert span.get_tag("params.MessageBody") is None
 
         assert span.get_tag("component") == "botocore"
@@ -1906,7 +1905,7 @@ class BotocoreTest(TracerTestCase):
             assert span.resource == "secretsmanager.createsecret"
             assert span.get_tag("params.Name") is None
             assert span.get_tag("aws.operation") == "CreateSecret"
-            assert span.get_tag("aws.region") == "us-east-1"
+            assert span.get_tag("region") == "us-east-1"
             assert span.get_tag("aws.agent") == "botocore"
             assert span.get_tag("http.status_code") == "200"
             assert span.get_tag("params.SecretString") is None
@@ -1932,7 +1931,7 @@ class BotocoreTest(TracerTestCase):
                 assert span.resource == "secretsmanager.createsecret"
                 assert span.get_tag("params.Name") == "/my/secrets"
                 assert span.get_tag("aws.operation") == "CreateSecret"
-                assert span.get_tag("aws.region") == "us-east-1"
+                assert span.get_tag("region") == "us-east-1"
                 assert span.get_tag("aws.agent") == "botocore"
                 assert span.get_tag("http.status_code") == "200"
                 assert span.get_tag("params.SecretString") is None
@@ -1957,7 +1956,7 @@ class BotocoreTest(TracerTestCase):
             assert span.resource == "secretsmanager.createsecret"
             assert span.get_tag("params.Name") is None
             assert span.get_tag("aws.operation") == "CreateSecret"
-            assert span.get_tag("aws.region") == "us-east-1"
+            assert span.get_tag("region") == "us-east-1"
             assert span.get_tag("aws.agent") == "botocore"
             assert span.get_tag("http.status_code") == "200"
             assert span.get_tag("params.SecretString") is None
@@ -1983,7 +1982,7 @@ class BotocoreTest(TracerTestCase):
                 assert span.resource == "secretsmanager.createsecret"
                 assert span.get_tag("params.Name") == "/my/secrets"
                 assert span.get_tag("aws.operation") == "CreateSecret"
-                assert span.get_tag("aws.region") == "us-east-1"
+                assert span.get_tag("region") == "us-east-1"
                 assert span.get_tag("aws.agent") == "botocore"
                 assert span.get_tag("http.status_code") == "200"
                 assert span.get_tag("params.SecretString") is None
