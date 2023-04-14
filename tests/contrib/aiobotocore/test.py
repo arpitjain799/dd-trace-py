@@ -106,7 +106,7 @@ async def _test_s3_put(tracer):
 @pytest.mark.asyncio
 async def test_s3_put(tracer):
     span = await _test_s3_put(tracer)
-    assert span.get_tag("aws.s3.bucket_name") == "mybucket"
+    assert span.get_tag("bucketname") == "mybucket"
     assert span.get_tag("component") == "aiobotocore"
 
 
@@ -114,7 +114,7 @@ async def test_s3_put(tracer):
 async def test_s3_put_no_params(tracer):
     with override_config("aiobotocore", dict(tag_no_params=True)):
         span = await _test_s3_put(tracer)
-        assert span.get_tag("aws.s3.bucket_name") is None
+        assert span.get_tag("bucketname") is None
         assert span.get_tag("params.Key") is None
         assert span.get_tag("params.Bucket") is None
         assert span.get_tag("params.Body") is None

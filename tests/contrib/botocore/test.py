@@ -241,13 +241,13 @@ class BotocoreTest(TracerTestCase):
     @mock_s3
     def test_s3_put(self):
         span = self._test_s3_put()
-        assert span.get_tag("aws.s3.bucket_name") == "mybucket"
+        assert span.get_tag("bucketname") == "mybucket"
 
     @mock_s3
     def test_s3_put_no_params(self):
         with self.override_config("botocore", dict(tag_no_params=True)):
             span = self._test_s3_put()
-            assert span.get_tag("aws.s3.bucket_name") is None
+            assert span.get_tag("bucketname") is None
             assert span.get_tag("params.Key") is None
             assert span.get_tag("params.Bucket") is None
             assert span.get_tag("params.Body") is None
@@ -268,7 +268,7 @@ class BotocoreTest(TracerTestCase):
         # DEV: Test no params overrides all params
         with self.override_config("botocore", dict(tag_no_params=True, tag_all_params=True)):
             span = self._test_s3_put()
-            assert span.get_tag("aws.s3.bucket_name") is None
+            assert span.get_tag("bucketname") is None
             assert span.get_tag("params.Key") is None
             assert span.get_tag("params.Bucket") is None
             assert span.get_tag("params.Body") is None
@@ -628,13 +628,13 @@ class BotocoreTest(TracerTestCase):
     @mock_kinesis
     def test_kinesis_client(self):
         span = self._test_kinesis_client()
-        assert span.get_tag("aws.kinesis.stream_name") == "test"
+        assert span.get_tag("streamname") == "test"
 
     @mock_kinesis
     def test_kinesis_client_no_params(self):
         with self.override_config("botocore", dict(tag_no_params=True)):
             span = self._test_kinesis_client()
-            assert span.get_tag("aws.kinesis.stream_name") is None
+            assert span.get_tag("streamname") is None
             assert span.get_tag("params.Records") is None
 
     @mock_kinesis

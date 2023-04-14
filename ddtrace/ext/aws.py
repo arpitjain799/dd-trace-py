@@ -91,7 +91,6 @@ def _add_api_param_span_tags(span, endpoint_name, params):
             queue_name = queue_url.split("/")[-1]
             aws_account = queue_url.split("/")[-2]
             span.set_tag_str("aws_account", aws_account)
-            span.set_tag_str("aws.sqs.queue_url", queue_url)
         span.set_tag_str("queuename", queue_name)
 
     elif endpoint_name == "lambda":

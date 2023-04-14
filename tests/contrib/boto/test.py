@@ -158,13 +158,13 @@ class BotoTest(TracerTestCase):
     def test_s3_client(self):
         span = self._test_s3_client()
         # DEV: Not currently supported
-        self.assertIsNone(span.get_tag("aws.s3.bucket_name"))
+        self.assertIsNone(span.get_tag("bucketname"))
 
     @mock_s3
     def test_s3_client_no_params(self):
         with self.override_config("boto", dict(tag_no_params=True)):
             span = self._test_s3_client()
-            self.assertIsNone(span.get_tag("aws.s3.bucket_name"))
+            self.assertIsNone(span.get_tag("bucketname"))
 
     @mock_s3
     def test_s3_client_all_params(self):
@@ -177,7 +177,7 @@ class BotoTest(TracerTestCase):
         # DEV: Test no params overrides all params
         with self.override_config("boto", dict(tag_no_params=True, tag_all_params=True)):
             span = self._test_s3_client()
-            self.assertIsNone(span.get_tag("aws.s3.bucket_name"))
+            self.assertIsNone(span.get_tag("bucketname"))
             self.assertIsNone(span.get_tag("path"))
 
     @mock_s3
