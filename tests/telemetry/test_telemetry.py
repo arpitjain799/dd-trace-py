@@ -170,9 +170,7 @@ from ddtrace import patch, tracer
     assert b"Unable to parse DD_SPAN_SAMPLING_RULES=" in stderr
 
     events = test_agent_session.get_events()
-    import pdb
 
-    pdb.set_trace()
     assert len(events) == 2
 
     # Same runtime id is used
@@ -180,7 +178,10 @@ from ddtrace import patch, tracer
     assert events[0]["request_type"] == "app-closing"
     assert events[1]["request_type"] == "app-started"
     assert events[1]["payload"]["error"]["code"] == 1
-    assert events[1]["payload"]["error"]["message"] == "module 'sqlite3' has no attribute 'connect'"
+    assert (
+        events[1]["payload"]["error"]["message"]
+        == "ValueError(\"Unable to parse DD_SPAN_SAMPLING_RULES='invalid_rules'\")"
+    )
 
 
 def test_integration_error(test_agent_session, run_python_code_in_subprocess):
