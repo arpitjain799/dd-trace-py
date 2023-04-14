@@ -107,6 +107,6 @@ def _add_api_param_span_tags(span, endpoint_name, params):
         span.set_tag_str("statemachinearn", state_machine_arn)
 
 
-REGION = "aws.region"
+REGION = "region"
 AGENT = "aws.agent"
 OPERATION = "aws.operation"

@@ -33,7 +33,7 @@ async def test_traced_client(tracer):
 
     assert_is_measured(span)
     assert span.get_tag("aws.agent") == "aiobotocore"
-    assert span.get_tag("aws.region") == "us-west-2"
+    assert span.get_tag("region") == "us-west-2"
     assert span.get_tag("aws.operation") == "DescribeInstances"
     assert_span_http_status_code(span, 200)
     assert span.get_metric("retry_attempts") == 0
@@ -207,7 +207,7 @@ async def test_sqs_client(tracer):
     span = traces[0][0]
 
     assert_is_measured(span)
-    assert span.get_tag("aws.region") == "us-west-2"
+    assert span.get_tag("region") == "us-west-2"
     assert span.get_tag("aws.operation") == "ListQueues"
     assert_span_http_status_code(span, 200)
     assert span.service == "aws.sqs"
@@ -228,7 +228,7 @@ async def test_kinesis_client(tracer):
     span = traces[0][0]
 
     assert_is_measured(span)
-    assert span.get_tag("aws.region") == "us-west-2"
+    assert span.get_tag("region") == "us-west-2"
     assert span.get_tag("aws.operation") == "ListStreams"
     assert_span_http_status_code(span, 200)
     assert span.service == "aws.kinesis"
@@ -249,7 +249,7 @@ async def test_lambda_client(tracer):
     span = traces[0][0]
 
     assert_is_measured(span)
-    assert span.get_tag("aws.region") == "us-west-2"
+    assert span.get_tag("region") == "us-west-2"
     assert span.get_tag("aws.operation") == "ListFunctions"
     assert_span_http_status_code(span, 200)
     assert span.service == "aws.lambda"
@@ -270,7 +270,7 @@ async def test_kms_client(tracer):
     span = traces[0][0]
 
     assert_is_measured(span)
-    assert span.get_tag("aws.region") == "us-west-2"
+    assert span.get_tag("region") == "us-west-2"
     assert span.get_tag("aws.operation") == "ListKeys"
     assert_span_http_status_code(span, 200)
     assert span.service == "aws.kms"
@@ -327,7 +327,7 @@ async def test_opentraced_client(tracer):
 
     assert_is_measured(dd_span)
     assert dd_span.get_tag("aws.agent") == "aiobotocore"
-    assert dd_span.get_tag("aws.region") == "us-west-2"
+    assert dd_span.get_tag("region") == "us-west-2"
     assert dd_span.get_tag("aws.operation") == "DescribeInstances"
     assert_span_http_status_code(dd_span, 200)
     assert dd_span.get_metric("retry_attempts") == 0

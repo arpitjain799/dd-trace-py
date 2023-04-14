@@ -147,7 +147,7 @@ async def _wrapped_api_call(original_func, instance, args, kwargs):
         meta = {
             "aws.agent": "aiobotocore",
             "aws.operation": operation,
-            "aws.region": region_name,
+            "region": region_name,
         }
         span.set_tags(meta)
 

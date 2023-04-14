@@ -71,7 +71,7 @@ def patched_api_call(original_func, instance, args, kwargs):
 
             if args[1] and "TableName" in args[1]:
                 table_name = args[1]["TableName"]
-                span.set_tag_str("table_name", table_name)
+                span.set_tag_str("tablename", table_name)
                 span.resource = span.resource + " " + table_name
 
         except ArgumentError:
@@ -83,7 +83,7 @@ def patched_api_call(original_func, instance, args, kwargs):
         meta = {
             "aws.agent": "pynamodb",
             "aws.operation": operation,
-            "aws.region": region_name,
+            "region": region_name,
         }
         span.set_tags(meta)
 
