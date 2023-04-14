@@ -314,10 +314,6 @@ class Tracer(object):
 
     def global_excepthook(self, tp, value, traceback):
         """The global tracer except hook."""
-        import pdb
-
-        pdb.set_trace()
-
         if asbool(os.getenv("DD_INSTRUMENTATION_TELEMETRY_ENABLED", True)):
             telemetry_writer.add_error(1, tp)
             telemetry_writer.enable()
