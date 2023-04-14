@@ -1,6 +1,33 @@
 import sys
 
+
+def global_excepthook(tp, value, traceback):
+    """The global tracer except hook."""
+    if asbool(os.getenv("DD_INSTRUMENTATION_TELEMETRY_ENABLED", True)):
+        # import pdb; pdb.set_trace()
+        telemetry_writer.add_error(1, repr(value))
+        telemetry_writer.enable()
+
+
+def _excepthook(tp, value, traceback):
+    global_excepthook(tp, value, traceback)
+    if _ORIGINAL_EXCEPTHOOK:
+        return _ORIGINAL_EXCEPTHOOK(tp, value, traceback)
+
+
+def install_excepthook():
+    """Install a hook that intercepts unhandled exception and send metrics about them."""
+    global _ORIGINAL_EXCEPTHOOK
+    _ORIGINAL_EXCEPTHOOK = sys.excepthook
+    sys.excepthook = _excepthook
+
+
+install_excepthook()
+import os
+
 from ddtrace.internal.module import ModuleWatchdog
+from ddtrace.internal.telemetry import telemetry_writer
+from ddtrace.internal.utils.formats import asbool
 
 
 ModuleWatchdog.install()
@@ -44,19 +71,6 @@ __all__ = [
 ]
 
 _ORIGINAL_EXCEPTHOOK = sys.excepthook
-
-
-def _excepthook(tp, value, traceback):
-    tracer.global_excepthook(tp, value, traceback)
-    if _ORIGINAL_EXCEPTHOOK:
-        return _ORIGINAL_EXCEPTHOOK(tp, value, traceback)
-
-
-def install_excepthook():
-    """Install a hook that intercepts unhandled exception and send metrics about them."""
-    global _ORIGINAL_EXCEPTHOOK
-    _ORIGINAL_EXCEPTHOOK = sys.excepthook
-    sys.excepthook = _excepthook
 
 
 def uninstall_excepthook():

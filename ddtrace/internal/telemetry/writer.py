@@ -87,7 +87,10 @@ class _TelemetryClient:
         except Exception:
             log.debug("failed to send telemetry to the Datadog Agent at %s.", self.url, exc_info=True)
         finally:
-            conn.close()
+            try:
+                conn.close()
+            except UnboundLocalError:
+                pass
         return resp
 
     def get_headers(self, request):

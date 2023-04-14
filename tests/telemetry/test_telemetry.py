@@ -160,19 +160,19 @@ os.fork()
 def test_app_started_error(test_agent_session, run_python_code_in_subprocess):
     code = """
 from ddtrace import patch, tracer
-ddtrace.install_excepthook()
 """
     env = os.environ.copy()
     env["DD_SPAN_SAMPLING_RULES"] = "invalid_rules"
+    env["DD_INSTRUMENTATION_TELEMETRY_ENABLED"] = "true"
 
     stdout, stderr, status, _ = run_python_code_in_subprocess(code, env=env)
+    assert status == 1, stderr
+    assert b"Unable to parse DD_SPAN_SAMPLING_RULES=" in stderr
+
+    events = test_agent_session.get_events()
     import pdb
 
     pdb.set_trace()
-    assert status == 0, stderr
-    assert b"failed to import" in stderr
-
-    events = test_agent_session.get_events()
     assert len(events) == 2
 
     # Same runtime id is used
@@ -180,7 +180,7 @@ ddtrace.install_excepthook()
     assert events[0]["request_type"] == "app-closing"
     assert events[1]["request_type"] == "app-started"
     assert events[1]["payload"]["error"]["code"] == 1
-    assert events[1]["payload"]["integration"][0]["error"] == "module 'sqlite3' has no attribute 'connect'"
+    assert events[1]["payload"]["error"]["message"] == "module 'sqlite3' has no attribute 'connect'"
 
 
 def test_integration_error(test_agent_session, run_python_code_in_subprocess):
