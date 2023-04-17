@@ -1,6 +1,6 @@
 ---
 other:
   - |
-    Adds aws_service, region, <resourcename> such as queuename tags to boto(aws-sdk) intercepted requests such as sns.publish or sqs.sendMessage.
+    Adds aws_service, region, <resource_name> such as queue_name tags to Boto, Pynamodb, Aiobotocore, and Botocore intercepted requests such as sns.publish or sqs.sendMessage.
     Motivation for this is Serverless inferred related resources, pivoting from traces to aws integration metrics out of the box and much more outlined
-    in google doc `Consistent APM span tags for AWS requests` by Tian Chu
+    in google doc `Consistent APM span tags for AWS requests`
