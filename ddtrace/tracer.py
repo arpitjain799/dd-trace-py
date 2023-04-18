@@ -46,6 +46,7 @@ from .internal.runtime import get_runtime_id
 from .internal.serverless import has_aws_lambda_agent_extension
 from .internal.serverless import in_aws_lambda
 from .internal.serverless import in_gcp_function
+from .internal.serverless.mini_agent import maybe_start_serverless_mini_agent
 from .internal.service import ServiceStatusError
 from .internal.utils.formats import asbool
 from .internal.writer import AgentWriter
@@ -186,23 +187,6 @@ def _default_span_processors_factory(
     return span_processors, appsec_processor
 
 
-def _maybe_start_serverless_mini_agent():
-    rust_binary_path = os.getenv("DD_MINI_AGENT_PATH")
-    if not in_gcp_function():
-        return
-    if not rust_binary_path:
-        log.log(
-            logging.ERROR,
-            "Serverless Mini Agent did not start. Please provide a DD_MINI_AGENT_PATH environment variable.",
-        )
-        return
-
-    try:
-        Popen(rust_binary_path)
-    except Exception as e:
-        log.log(logging.ERROR, "Error spawning Serverless Mini Agent process: %s", repr(e))
-
-
 class Tracer(object):
     """
     Tracer is used to create, sample and submit spans that measure the
@@ -231,7 +215,7 @@ class Tracer(object):
         :param dogstatsd_url: The DogStatsD URL.
         """
 
-        _maybe_start_serverless_mini_agent()
+        maybe_start_serverless_mini_agent()
 
         self._filters = []  # type: List[TraceFilter]
 
