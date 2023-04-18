@@ -1,0 +1,5 @@
+---
+features:
+  - |
+    Adds support for traces and trace metrics in Google Cloud Function environments when used in conjunction with 
+    the serverless trace mini agent package. The trace mini agent is spawned during tracer initialization.
