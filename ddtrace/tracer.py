@@ -4,7 +4,6 @@ import logging
 import os
 from os import environ
 from os import getpid
-from subprocess import Popen
 import sys
 from threading import RLock
 from typing import TYPE_CHECKING
