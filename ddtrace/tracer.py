@@ -187,9 +187,8 @@ def _default_span_processors_factory(
 
 
 def _maybe_start_serverless_mini_agent():
-    is_gcp_function = os.getenv("K_SERVICE") is not None
     rust_binary_path = os.getenv("DD_MINI_AGENT_PATH")
-    if not is_gcp_function:
+    if not in_gcp_function():
         return
     if not rust_binary_path:
         log.log(
