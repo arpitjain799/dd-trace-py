@@ -25,6 +25,6 @@ def in_gcp_function():
     This is accomplished by checking if the FUNCTION_NAME or K_SERVICE
     environment variables are defined.
     """
-    has_function_name = bool(environ.get("FUNCTION_NAME", False))
-    has_k_service = bool(environ.get("K_SERVICE", False))
-    return has_function_name or has_k_service
+    is_deprecated_gcp_function = bool(environ.get("FUNCTION_NAME", False)) and bool(environ.get("GCP_PROJECT", False))
+    is_newer_gcp_function = bool(environ.get("K_SERVICE", False)) and bool(environ.get("FUNCTION_TARGET", False))
+    return is_deprecated_gcp_function or is_newer_gcp_function
