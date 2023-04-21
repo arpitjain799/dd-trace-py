@@ -48,7 +48,6 @@ from tests.utils import override_global_config
 
 from ..appsec.test_processor import tracer_appsec
 from ..utils import override_env
-from ..utils import override_global_tracer
 
 
 class TracerTestCases(TracerTestCase):
