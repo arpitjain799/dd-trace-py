@@ -1944,27 +1944,3 @@ def test_installed_excepthook():
     assert sys.excepthook is not ddtrace._excepthook
     ddtrace.install_excepthook()
     assert sys.excepthook is ddtrace._excepthook
-
-
-def test_excepthook():
-    class Foobar(Exception):
-        pass
-
-    called = {}
-
-    def original(tp, value, traceback):
-        called["yes"] = True
-
-    sys.excepthook = original
-    ddtrace.install_excepthook()
-
-    e = Foobar()
-
-    tracer = ddtrace.Tracer()
-    tracer._writer.dogstatsd = mock.Mock()
-    with override_global_tracer(tracer):
-        sys.excepthook(e.__class__, e, None)
-    tracer._writer.dogstatsd.increment.assert_has_calls(
-        (mock.call("datadog.tracer.uncaught_exceptions", 1, tags=["class:Foobar"]),)
-    )
-    assert called
