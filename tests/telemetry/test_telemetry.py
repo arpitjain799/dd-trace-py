@@ -1,4 +1,5 @@
 import os
+import sys
 
 import pytest
 
@@ -178,10 +179,11 @@ from ddtrace import patch, tracer
     assert events[0]["request_type"] == "app-closing"
     assert events[1]["request_type"] == "app-started"
     assert events[1]["payload"]["error"]["code"] == 1
-    assert (
-        events[1]["payload"]["error"]["message"]
-        == "ValueError(\"Unable to parse DD_SPAN_SAMPLING_RULES='invalid_rules'\")"
-    )
+    if sys.version_info < (3, 7):
+        expected_str = u"ValueError(\"Unable to parse DD_SPAN_SAMPLING_RULES='invalid_rules'\",)"
+    else:
+        expected_str = "ValueError(\"Unable to parse DD_SPAN_SAMPLING_RULES='invalid_rules'\")"
+    assert events[1]["payload"]["error"]["message"] == expected_str
 
 
 def test_integration_error(test_agent_session, run_python_code_in_subprocess):
@@ -200,7 +202,12 @@ tracer.flush()
     stdout, stderr, status, _ = run_python_code_in_subprocess(code)
 
     assert status == 0, stderr
-    assert b"failed to import" in stderr
+    if sys.version_info[0] < 3:
+        # not quite sure why python 2.7 has a different error here, probably a difference with how it loads modules
+        expected_stderr = b"No handlers could be found for logger"
+    else:
+        expected_stderr = b"failed to import"
+    assert expected_stderr in stderr
 
     events = test_agent_session.get_events()
     assert len(events) == 2
@@ -209,6 +216,9 @@ tracer.flush()
     assert events[0]["runtime_id"] == events[1]["runtime_id"]
     assert events[0]["request_type"] == "app-closing"
     assert events[1]["request_type"] == "app-started"
-    assert events[1]["payload"]["integrations"][0]["error"] == (
-        "failed to import ddtrace module 'ddtrace.contrib.sqlite3' when patching on import"
-    )
+
+    if sys.version_info[0] < 3:
+        expected_str = u"failed to import ddtrace module 'ddtrace.contrib.sqlite3' when patching on import"
+    else:
+        expected_str = "failed to import ddtrace module 'ddtrace.contrib.sqlite3' when patching on import"
+    assert events[1]["payload"]["integrations"][0]["error"] == expected_str

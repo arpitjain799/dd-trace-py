@@ -4,7 +4,7 @@ def get_version():
         from ._version import version
 
         return version
-    except ImportError:
+    except (ImportError, SystemError):
         import pkg_resources
 
         try:
