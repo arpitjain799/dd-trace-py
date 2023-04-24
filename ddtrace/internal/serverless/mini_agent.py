@@ -11,6 +11,9 @@ log = get_logger(__name__)
 
 
 def maybe_start_serverless_mini_agent():
+    if not in_gcp_function():
+        return
+
     rust_binary_path = os.getenv("DD_MINI_AGENT_PATH")
     if rust_binary_path is None:
         (major, minor, _) = python_version_tuple()
@@ -21,8 +24,6 @@ def maybe_start_serverless_mini_agent():
             + minor
             + "/datadog-serverless-agent-linux-amd64/datadog-serverless-trace-mini-agent"
         )
-    if not in_gcp_function():
-        return
 
     try:
         Popen(rust_binary_path)
