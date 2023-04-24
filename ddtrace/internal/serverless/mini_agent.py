@@ -1,6 +1,7 @@
 import logging
 import os
 from platform import python_version_tuple
+import stat
 from subprocess import Popen
 
 from . import in_gcp_function
@@ -18,14 +19,17 @@ def maybe_start_serverless_mini_agent():
     if rust_binary_path is None:
         (major, minor, _) = python_version_tuple()
         rust_binary_path = (
-            "/workspace/venv/lib/python"
+            "/layers/google.python.pip/pip/lib/python"
             + major
             + "."
             + minor
-            + "/datadog-serverless-agent-linux-amd64/datadog-serverless-trace-mini-agent"
+            + "/site-packages/datadog-serverless-agent-linux-amd64/datadog-serverless-trace-mini-agent"
         )
+    
+    st = os.stat(rust_binary_path)
+    os.chmod(rust_binary_path, st.st_mode | stat.S_IEXEC)
 
     try:
         Popen(rust_binary_path)
     except Exception as e:
-        log.log(logging.ERROR, "Error spawning Serverless Mini Agent process: %s", repr(e))
+        log.log(logging.ERROR, "Error spawning Serverless Mini Agent process: %s. Mini Agent binary path: %s", repr(e), rust_binary_path)
