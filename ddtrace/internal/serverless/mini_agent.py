@@ -25,11 +25,16 @@ def maybe_start_serverless_mini_agent():
             + minor
             + "/site-packages/datadog-serverless-agent-linux-amd64/datadog-serverless-trace-mini-agent"
         )
-    
+
     st = os.stat(rust_binary_path)
     os.chmod(rust_binary_path, st.st_mode | stat.S_IEXEC)
 
     try:
         Popen(rust_binary_path)
     except Exception as e:
-        log.log(logging.ERROR, "Error spawning Serverless Mini Agent process: %s. Mini Agent binary path: %s", repr(e), rust_binary_path)
+        log.log(
+            logging.ERROR,
+            "Error spawning Serverless Mini Agent process: %s. Mini Agent binary path: %s",
+            repr(e),
+            rust_binary_path,
+        )
