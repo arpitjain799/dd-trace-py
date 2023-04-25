@@ -13,8 +13,7 @@ _ORIGINAL_EXCEPTHOOK = sys.excepthook
 
 def _excepthook(tp, value, traceback):
     global_excepthook(tp, value, traceback)
-    if _ORIGINAL_EXCEPTHOOK:
-        return _ORIGINAL_EXCEPTHOOK(tp, value, traceback)  # type: ignore
+    return _ORIGINAL_EXCEPTHOOK(tp, value, traceback)
 
 
 def install_excepthook():
